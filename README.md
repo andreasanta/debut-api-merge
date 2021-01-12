@@ -1,50 +1,73 @@
-# Debut API
+# Rick & Morty MIX
 
-The idea of the exercise is to see how you structure the project, apply good practices and solve the problem. There is no one way to do it but you should be able to defend your work.
+This is an implementation of the exercise proposed by Debut.
 
-## Setup
-Clone this repository and only work on your local environment.
-- No need to fork the repository
-- Do not create Pull Request (they'll be deleted)
+The objective is to mix one or more datasets, and provide an aggregated results.
 
-It's ready to run using `gradle` or from the main class.
+The development must be done in Kotlin + Java Spring Boot.
 
-## Exercise Definition
+## Getting Started
 
-The topic is characters from Rick and Morty.
+I had to upgrade gradle in order to work with Java 15 - latest version,
+so please ensure you have the same version or a compatible one with
+Gradle 6.7-rc1.
 
-The idea is to create a simple REST API that's going to combine data from different sources and treat them as one. A 
-client should be able to consume this API without knowing the data is coming from more than one source.
+In order to execute the app, simply run:
 
-### Sources
-- Local database. 
-    - It doesn't need to be a real database, just storing it on memory would be enough.
-    - Model definition defined on [characters-entity-definition.json](https://github.com/debutcareers/debut-be-exercise-api/blob/master/src/main/resources/characters-entity-definition.json)
-- First page of Characters endpoint from [Rick and Morty API](https://rickandmortyapi.com/documentation/#rest)
+`./gradlew bootRun`
 
-### Endpoints
-- Get a list of characters
-- Create a new character (only for the local database)
-- Search character by name
-- Get character by id
+From the command line. This will spin up a local webserver on localhost:8080.
 
-## Notes
-- The idea of the exercise is to be done in around 3 hours depending on how familiar you are with Kotlin and Spring
-- What we are going to check from the project is:
-    - Project design, clean and scalable architecture
-    - Model design and model mapping
-    - REST API working, ideally no bugs
-    - Understanding of functional programming
-    - Testing
-- Try to think a scenario where you could have more than two sources in the future  
-- You can use any external library that you see necessary 
-- Everything extra you add is going to be well appreciated, but it’s not going to be judge for not adding it
-- The result of this exercise is going to be used for your final tech interview
+You can ensure everything is working fine by navigating to:
 
-## Delivering
-We accept any of these ways for delivery
-- Zip project and send it by email
-- Create a Github repo and share access to @maxidelo and @valentinholgado
+GET http://localhost:8080/characters/
+
+It should present a mix of remote and local characters. This is the
+main endpoint that returns all characters.
+
+## Other endpoints
+
+Following the best practices of REST APIs, I tried to always return errors with
+HTTP status codes and use URL parameters wherever possible.
+
+### GET /characters/{id}
+
+Returns the character with the specified id.
+
+### GET /characters/?name=Rick
+
+Returns a list of characters with the specified names.
+
+**NOTE**: on the local JPA instance a LIKE query is not issued so the name must match exactly.
+
+### POST /characters
+
+A post to this endpoint with the proper paylod will create an entity
+in the local in memory storage. This is done using the CrudRepository
+class and inheriting from there.
+
+Try a post with the following payload:
+
+```json
+    {
+        "id":"AMI",
+        "name":"Amigo Mio",
+        "gender":"Genderless",
+        "image":"https://www.sophya.es/wp-content/uploads/2011/06/shutterstock_283656011_easy-resize-com-1024x682.jpg"
+    }
+```
+
+NOTES:
+- It's not possible to create an entity with the same ID, the check is performed also on the remote APIS.
+- The parameters are not validated except the Gender which is an enum. This is a point of improval in my todo notes.
+
+## Approach
+
+The high level approach to the exercise has been to consider since the beginning that we can have multiple data sources in the future, thus each one of them will inherit from the JPA compliant CrudRepository.
+
+You will find in the `repositories` namespace two classes, one mapping to the remote APIs and the other to the local in memory database. Both are instanced as Beans/Singletons and the local database is seeded by the "beans.MemoryDatabaseInitializer" class which runs on every startup.
+
+All these sources are unified in the "CharacterController" which queries both of them before returning results. In the future, it will be sufficient to add a list of datasources and query them parallely to expand the number of datasources.
 
 
 ## TODO
