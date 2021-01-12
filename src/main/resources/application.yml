@@ -1,0 +1,16 @@
+spring:
+  profiles.active: local
+
+  # Hikari complains on Spring Boot 2 if it does not have a datasource...
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:h2:mem:TEST
+    driver-class-name: org.h2.Driver
+    username: username
+    password: password
+    hikari:
+      idle-timeout: 10000
+
+logging:
+  level:
+    org.springframework.web: INFO
